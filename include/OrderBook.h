@@ -6,5 +6,6 @@ struct Order;
 
 struct OrderBook
 {
-	std::vector<Order> orders;
+	std::vector<Order> asks;
+	std::vector<Order> bids;
 };

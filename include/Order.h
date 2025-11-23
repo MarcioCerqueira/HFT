@@ -12,6 +12,7 @@ enum class OrderType
 struct Order
 {
 	std::string ID;
+	std::string venueID;
 	unsigned int volume{ 0 };
 	double price{ 0 };
 	OrderType type{ OrderType::Unknown };

@@ -1,4 +1,5 @@
 #include "Gateway.h"
+#include "BookBuilder.h"
 
 using namespace std;
 
@@ -8,8 +9,10 @@ void Gateway::addVenue(Venue& venue)
 	sendPriceUpdates(venue.getID(), venue.getOrders());
 }
 
-void Gateway::sendPriceUpdates(const std::string& venueID, const std::unordered_map<std::string, Order>& order) const
+void Gateway::sendPriceUpdates(const std::string& venueID, const std::unordered_map<std::string, Order>& orderMap)
 {
+	bookBuilder.addOrders(orderMap);
+	bookBuilder.printOrderBook();
 }
 
 void Gateway::updateVenue(const std::string& venueID, const Order& order)
