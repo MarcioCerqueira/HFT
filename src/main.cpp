@@ -14,6 +14,6 @@ int main(int argc, char* argv[])
 	//NOLINTEND
 
 	Gateway gateway;
-	nyseVenue.sendOrders(gateway);
+	gateway.addVenue(nyseVenue);
 	return 0;
 }

@@ -4,10 +4,5 @@
 
 void Venue::addOrder(const Order& order)
 {
-	orders.push_back(order);
-}
-
-void Venue::sendOrders(const Gateway& gateway) const
-{
-	gateway.receiveOrders(orders);
+	orders[order.ID] = order;
 }
