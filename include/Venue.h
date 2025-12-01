@@ -15,9 +15,9 @@ public:
 	void addOrder(const Order& order);
 
 	std::string getID() const { return ID; }
-	std::unordered_map<std::string, Order> getOrders() const { return orders; }
+	std::unordered_map<uint64_t, Order> getOrders() const { return orders; }
 
 private: 
 	std::string ID;
-	std::unordered_map<std::string, Order> orders;
+	std::unordered_map<uint64_t, Order> orders;
 };

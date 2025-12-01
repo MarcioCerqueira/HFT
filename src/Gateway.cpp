@@ -1,6 +1,8 @@
 #include "Gateway.h"
 #include "BookBuilder.h"
 
+#include <ranges>
+
 using namespace std;
 
 void Gateway::addVenue(Venue& venue)
@@ -9,9 +11,12 @@ void Gateway::addVenue(Venue& venue)
 	sendPriceUpdates(venue.getID(), venue.getOrders());
 }
 
-void Gateway::sendPriceUpdates(const std::string& venueID, const std::unordered_map<std::string, Order>& orderMap)
+void Gateway::sendPriceUpdates(const std::string& venueID, const std::unordered_map<uint64_t, Order>& orderMap)
 {
-	bookBuilder.addOrders(orderMap);
+	for (const auto& [orderID, order] : orderMap)
+	{
+		bookBuilder.addOrder(order);
+	}
 	bookBuilder.printOrderBook();
 }
 

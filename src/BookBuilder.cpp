@@ -4,40 +4,49 @@
 #include <iostream>
 #include "Order.h"
 
-void BookBuilder::addOrders(const std::unordered_map<std::string, Order>& orderMap)
+void BookBuilder::addOrder(const Order& order)
 {
-	for (const auto& [orderID, order] : orderMap)
+	// Even though it seems counter-intuitive, it is better to sort best prices at the end of the collection
+	// in order to minimize copies when buying/selling from the order book.
+
+	if (order.side == OrderSide::Ask)
 	{
-		if (order.type == OrderType::Ask)
-		{
-			orderBook.asks.push_back(order);
-		}
-		else if (order.type == OrderType::Bid)
-		{
-			orderBook.bids.push_back(order);
-		}
+		return addOrder(orderBook.asks, order, std::greater<Order>());
 	}
+	
+	if (order.side == OrderSide::Bid)
+	{
+		return addOrder(orderBook.bids, order, std::less<Order>());
+	}
+}
 
-	std::sort(orderBook.asks.begin(), orderBook.asks.end(), [](const Order& a, const Order& b) {
-		return a.price < b.price;
-	});
+template <typename Comparator>
+void BookBuilder::addOrder(std::vector<Order>& orders, const Order& order, Comparator comparator)
+{
+	// Let's use lambda (functor) instead of std::function for better performance.
+	auto comparatorLambda = [order, comparator](const Order& currentOrder) { return comparator(currentOrder, order); };
 
-	std::sort(orderBook.bids.begin(), orderBook.bids.end(), [](const Order& a, const Order& b) {
-		return a.price > b.price;
-	});
+	// According to this performance benchmark (https://www.youtube.com/watch?v=sX2nF1fW7kI), 
+	// linear search provides better than binary search for actual production data. 
+	// Hence, we have chosen to stick with this solution for now.
+	auto it = std::find_if(orders.begin(), orders.end(), comparatorLambda);
+	orders.insert(it, order);
 }
 
 void BookBuilder::printOrderBook() const
 {
 	std::cout << "Order Book:" << std::endl;
 	std::cout << "Asks:" << std::endl;
-	for (const auto& ask : orderBook.asks)
-	{
-		std::cout << "ID: " << ask.ID << ", Venue: " << ask.venueID << ", Price: " << ask.price << ", Volume: " << ask.volume << std::endl;
-	}
+	printOrders(orderBook.asks);
 	std::cout << "Bids:" << std::endl;
-	for (const auto& bid : orderBook.bids)
+	printOrders(orderBook.bids);
+	std::cout << std::endl;
+}
+
+void BookBuilder::printOrders(const std::vector<Order>& orders) const
+{
+	for (auto it = orders.rbegin(); it < orders.rend(); ++it)
 	{
-		std::cout << "ID: " << bid.ID << ", Venue: " << bid.venueID << ", Price: " << bid.price << ", Volume: " << bid.volume << std::endl;
+		std::cout << "ID: " << it->ID << ", Venue: " << it->venueID << ", Price: " << it->price << ", Volume: " << it->volume << std::endl;
 	}
 }

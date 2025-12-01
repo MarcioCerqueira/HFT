@@ -10,9 +10,13 @@ struct Order;
 class BookBuilder
 {
 public:
-	void addOrders(const std::unordered_map<std::string, Order>& orderMap);
+	void addOrder(const Order& order);
 	void printOrderBook() const;
 
 private:
+	template <typename Comparator>
+	void addOrder(std::vector<Order>& orders, const Order& order, Comparator comparator);
+	void printOrders(const std::vector<Order>& orders) const;
+
 	OrderBook orderBook;
 };
