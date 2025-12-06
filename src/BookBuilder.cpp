@@ -3,21 +3,23 @@
 #include <algorithm>
 #include <iostream>
 #include "Order.h"
+#include "Trade.h"
 
 void BookBuilder::addOrder(const Order& order)
 {
 	// Even though it seems counter-intuitive, it is better to sort best prices at the end of the collection
 	// in order to minimize copies when buying/selling from the order book.
-
 	if (order.side == OrderSide::Ask)
 	{
-		return addOrder(orderBook.asks, order, std::greater<Order>());
+		addOrder(orderBook.asks, order, std::less<Order>());
 	}
-	
+
 	if (order.side == OrderSide::Bid)
 	{
-		return addOrder(orderBook.bids, order, std::less<Order>());
+		addOrder(orderBook.bids, order, std::greater<Order>());
 	}
+
+	updateOrderBook(matchingEngine.match(order, orderBook));
 }
 
 template <typename Comparator>
@@ -45,8 +47,37 @@ void BookBuilder::printOrderBook() const
 
 void BookBuilder::printOrders(const std::vector<Order>& orders) const
 {
-	for (auto it = orders.rbegin(); it < orders.rend(); ++it)
+	for (auto it = orders.rbegin(); it != orders.rend(); ++it)
 	{
 		std::cout << "ID: " << it->ID << ", Venue: " << it->venueID << ", Price: " << it->price << ", Volume: " << it->volume << std::endl;
+	}
+}
+
+void BookBuilder::updateOrderBook(const std::vector<Trade>& trades)
+{
+	for (const auto& trade : trades)
+	{
+		updateOrderBook(trade, orderBook.asks, OrderSide::Ask);
+		updateOrderBook(trade, orderBook.bids, OrderSide::Bid);
+	}
+}
+
+void BookBuilder::updateOrderBook(const Trade& trade, std::vector<Order>& orders, OrderSide orderSide)
+{
+	const uint64_t targetID = (orderSide == OrderSide::Ask) ? trade.askID : trade.bidID;
+	auto it = std::find_if(orders.rbegin(), orders.rend(), [targetID](const Order& order) { return order.ID == targetID; });
+
+	if (it == orders.rend())
+	{
+		return;
+	}
+
+	if (it->volume > trade.volume)
+	{
+		it->volume -= trade.volume;
+	}
+	else
+	{
+		std::reverse_iterator(orders.erase(std::next(it).base()));
 	}
 }
